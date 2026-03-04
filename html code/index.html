@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PSHXL • Чистые вкладки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0b0b0b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 6px;
+        }
+
+        .phone {
+            position: relative;
+            width: 100%;
+            max-width: 390px;
+            height: 800px;
+            background: #1f0a0a;
+            border-radius: 48px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px black, 0 0 0 2px #9b2c2c inset;
+            backdrop-filter: blur(2px);
+        }
+
+        .phone::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 40%, #b52b2b80, #130505e0 80%),
+                        repeating-linear-gradient(45deg, #300c0c 0px, #300c0c 10px, #521d1d 10px, #521d1d 20px);
+            filter: blur(9px);
+            z-index: 0;
+        }
+
+        .bg-text {
+            position: absolute;
+            top: 18%;
+            left: 0;
+            width: 100%;
+            font-size: 5rem;
+            font-weight: 900;
+            color: rgba(150, 30, 30, 0.3);
+            text-align: center;
+            transform: rotate(-10deg) scale(1.3);
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 1;
+            filter: blur(2px);
+            text-shadow: 0 0 15px #a00;
+        }
+
+        .content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(2px);
+            color: #ffd9d9;
+        }
+
+        /* шапка с магазином (остаётся всегда) */
+        .shop-bar {
+            background: #1e0909ee;
+            padding: 12px 18px;
+            border-bottom: 2px solid #b33a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 0 0 28px 28px;
+            box-shadow: 0 6px 10px #210000;
+        }
+        .shop-icon {
+            background: #962b2b;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: 700;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            cursor: pointer;
+        }
+        .shop-icon span {
+            background: #f3b33d;
+            color: black;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        /* скролл-область */
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 14px 8px 14px;
+        }
+
+        /* все страницы (вкладки) */
+        .page {
+            display: none;
+            flex-direction: column;
+            gap: 22px;
+        }
+        .page.active-page {
+            display: flex;
+        }
+
+        /* карточки */
+        .card {
+            background: rgba(34, 12, 12, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 28px;
+            padding: 18px 16px;
+            border: 1px solid #b74848;
+            box-shadow: 0 10px 18px #020000;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            border-left: 6px solid #e34;
+            padding-left: 14px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            color: #ffbdbd;
+        }
+
+        /* переключатель внутри "Купить/Бесплатно" (только на странице main) */
+        .switch-tabs {
+            display: flex;
+            background: #2f1212cc;
+            border-radius: 40px;
+            padding: 5px;
+            border: 1px solid #b14242;
+            margin-bottom: 10px;
+        }
+        .switch-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #ffb1b1;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .switch-tab.active {
+            background: #b13b3b;
+            color: white;
+            box-shadow: 0 0 12px #ff6868;
+        }
+
+        .hidden-block {
+            display: none;
+        }
+
+        /* кнопки */
+        .btn {
+            background: #b13b3b;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 12px 25px;
+            border-radius: 40px;
+            font-size: 1rem;
+            box-shadow: 0 6px 0 #591818;
+            cursor: pointer;
+            transition: 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #ffa0a0;
+        }
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #591818;
+        }
+        .btn-small {
+            padding: 8px 18px;
+            font-size: 0.9rem;
+        }
+
+        .link-tg {
+            background: #1d4b6b;
+            color: white;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 600;
+            display: inline-block;
+            border: 1px solid #4797d6;
+        }
+
+        .token-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 12px 0;
+        }
+        .token-cell {
+            background: #251010;
+            border-radius: 24px;
+            padding: 12px 5px;
+            text-align: center;
+            border: 1px solid #a14b4b;
+            cursor: pointer;
+            transition: 0.1s ease;
+        }
+        .token-cell:hover {
+            background: #3d1a1a;
+        }
+        .token-cell:active {
+            transform: scale(0.97);
+        }
+
+        .price {
+            color: #ffc145;
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .promo {
+            background: #2b1414;
+            border-radius: 30px;
+            padding: 10px 14px;
+            font-family: monospace;
+            font-weight: 700;
+            border: 1px dashed #d97979;
+            margin: 6px;
+            display: inline-block;
+        }
+
+        .status-badge {
+            background: #a3620c;
+            border-radius: 40px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        /* нижний таб-бар */
+        .bottom-nav {
+            display: flex;
+            background: #1a0808f5;
+            backdrop-filter: blur(15px);
+            border-top: 3px solid #b53b3b;
+            border-radius: 32px 32px 0 0;
+            padding: 6px 6px;
+            justify-content: space-around;
+        }
+        .nav-item {
+            text-align: center;
+            color: #fbc1c1;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 7px 12px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            background: #b13b3b;
+            color: white;
+        }
+        .small-note {
+            font-size: 0.75rem;
+            color: #bda7a7;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="bg-text">PSHXL</div>
+        <div class="content">
+
+            <!-- верх: магазин токенов (всегда виден) -->
+            <div class="shop-bar">
+                <div class="shop-icon" id="shopButton">🪙 Магазин токенов</div>
+                <div style="display:flex; gap:10px;">
+                    <span>15★</span>
+                    <span>25T</span>
+                </div>
+            </div>
+
+            <!-- скролл-область с отдельными страницами-вкладками -->
+            <div class="scroll-area">
+                <!-- СТРАНИЦА "Купить/Получить" (main) -->
+                <div id="pageMain" class="page active-page">
+                    <!-- карточка председателя (общая, но пусть будет здесь) -->
+                    <div class="card" style="background: #1a2a33;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="font-weight: 800;">👨‍💼 Председатель</span>
+                            <a href="https://t.me/raidentgkk" target="_blank" class="link-tg">@raidentgkk</a>
+                        </div>
+                        <p style="margin-top: 12px;">Открытое окно, напишите нам</p>
+                    </div>
+
+                    <!-- переключатель Купить / Получить бесплатно -->
+                    <div class="switch-tabs">
+                        <div class="switch-tab active" id="tabBuyBtn" onclick="showBuyTab()">Купить</div>
+                        <div class="switch-tab" id="tabFreeBtn" onclick="showFreeTab()">Получить бесплатно</div>
+                    </div>
+
+                    <!-- блок КУПИТЬ (видим по умолчанию) -->
+                    <div id="blockBuy" class="card">
+                        <div class="card-title">💰 Купить обучение</div>
+                        <p>Кнопка для покупки курса редактирования</p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 15px 0;">
+                            <span class="status-badge">15 TG-star</span>
+                            <span class="status-badge">25 токенов</span>
+                        </div>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button class="btn" onclick="redirectToTG()">💳 Купить за 15★</button>
+                            <button class="btn btn-small" onclick="showFreeTab()">Купить бесплатно</button>
+                        </div>
+                        <p class="small-note" style="margin-top:15px;">* нажмите «Купить бесплатно» для перехода к заданию</p>
+                    </div>
+
+                    <!-- блок ПОЛУЧИТЬ БЕСПЛАТНО (скрыт) -->
+                    <div id="blockFree" class="card hidden-block">
+                        <div class="card-title">🎁 Бесплатное обучение</div>
+                        <div style="background: #251515; border-radius: 24px; padding: 16px;">
+                            <p style="font-weight:700;">Задание в TikTok:</p>
+                            <p style="background: #1c0c0c; padding: 15px; border-radius: 18px; margin: 12px 0;">
+                                Напишите 10 раз:<br> <span style="color:#ff9f9f;">«Приложение PSHXL работает, проверено!»</span>
+                            </p>
+                            <button class="btn-small" style="background:#186218;" onclick="alert('Скриншот отправлен на проверку ИИ')">📸 Отправить скрин</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- СТРАНИЦА "Профиль" (только своя) -->
+                <div id="pageProfile" class="page">
+                    <div class="card">
+                        <div class="card-title">👤 Профиль</div>
+                        <div style="display:flex; align-items:center; gap:15px; flex-wrap:wrap;">
+                            <span style="background:#292020; padding:8px 20px; border-radius:40px;">📧 egorpopo91@gmail.com</span>
+                            <span class="status-badge">Новичок</span>
+                        </div>
+                        <p style="margin: 15px 0 10px;">Отзывов написано: 3 (ИИ проверяет скрины)</p>
+                        <!-- Кнопка перехода к отзывам, но она открывает страницу "Отзывы" через нижний таб -->
+                        <button class="btn-small" onclick="switchPageByNav('reviews')">Перейти к отзывам</button>
+                    </div>
+                    <!-- Дополнительная информация профиля -->
+                    <div class="card">
+                        <div class="card-title">📊 Статистика</div>
+                        <p>Потрачено токенов: 30</p>
+                        <p>Дней в приложении: 1</p>
+                        <p>Статус: новичок (активен)</p>
+                    </div>
+                </div>
+
+                <!-- СТРАНИЦА "Отзывы" (только отзывы) -->
+                <div id="pageReviews" class="page">
+                    <div class="card">
+                        <div class="card-title">📢 Отзывы</div>
+                        <div style="background:#241111; border-radius:20px; padding:12px; margin-bottom:12px;">⭐️⭐️⭐️⭐️ "PSHXL топ, всё работает"</div>
+                        <div style="background:#241111; border-radius:20px; padding:12px; margin-bottom:12px;">⭐️⭐️⭐️⭐️⭐️ "Лучшее приложение"</div>
+                        <div style="background:#241111; border-radius:20px; padding:12px;">⭐️⭐️⭐️⭐️ "Редактирование супер"</div>
+                        <div style="margin-top:20px;">
+                            <button class="btn-small" onclick="alert('Форма написания отзыва (скрин будет проверен ИИ)')">✏️ Написать отзыв</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- СТРАНИЦА "Работать с нами" -->
+                <div id="pageWork" class="page">
+                    <div class="card">
+                        <div class="card-title">🤝 Работать с нами</div>
+                        <a href="https://t.me/raidentgkk" target="_blank" class="link-tg" style="font-size:1.1rem;">https://t.me/raidentgkk</a>
+                        <p style="margin-top:18px; background:#211010; border-radius:20px; padding:16px;">
+                            📌 <strong>Посмотрите закреплённое сообщение</strong> и напишите в личные сообщения, мы рады всех видеть!
+                        </p>
+                        <button class="btn" style="margin-top:16px;" onclick="redirectToTG()">Написать в Telegram</button>
+                    </div>
+                </div>
+
+                <!-- СТРАНИЦА "Магазин" (только токены) -->
+                <div id="pageShop" class="page">
+                    <div class="card">
+                        <div class="card-title">🪙 Магазин токенов</div>
+                        <div class="token-grid">
+                            <div class="token-cell" onclick="redirectToTG()">10T <span class="price">50¢</span></div>
+                            <div class="token-cell" onclick="redirectToTG()">20T <span class="price">$1</span></div>
+                            <div class="token-cell" onclick="redirectToTG()">30T <span class="price">$1</span></div>
+                            <div class="token-cell" onclick="redirectToTG()">40T <span class="price">$2</span></div>
+                            <div class="token-cell" onclick="redirectToTG()">50T <span class="price">$2</span></div>
+                            <div class="token-cell" onclick="redirectToTG()">50T+VIP <span class="price">$3</span><br><span style="font-size:0.7rem;">Google в профиле</span></div>
+                            <div class="token-cell" onclick="redirectToTG()">250T <span class="price">$10</span><br>1 месяц статуса</div>
+                        </div>
+                        <p class="small-note">👇 При покупке токенов вы переходите в Telegram<br> <b>✈️ @raidentgkk</b></p>
+                        <p class="small-note" style="color:#ffadad;">Все деньги уходят на egorpopo91@gmail.com → потом на карту</p>
+                    </div>
+                    <!-- Промокоды только в магазине -->
+                    <div class="card">
+                        <div class="card-title">🏷️ Промокоды</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                            <span class="promo">PSHXLTHEBEST — 10Т</span>
+                            <span class="promo">PSHXLPROMO — 7Т</span>
+                            <span class="promo">333 — 10Т</span>
+                            <span class="promo">999 — 20Т</span>
+                        </div>
+                        <button class="btn-small" style="margin-top:10px;" onclick="alert('Промокод активирован (симуляция)')">Активировать</button>
+                    </div>
+                    <!-- Инструкция с заданием тоже в магазине (по желанию, можно убрать, но оставим) -->
+                    <div class="card">
+                        <div class="card-title">📋 Инструкция</div>
+                        <p>Напишите отзыв и получите токены.</p>
+                        <button class="btn-small" onclick="alert('Задание: написать отзыв')">К заданию</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- НИЖНИЙ ТАБ-БАР (переключает страницы) -->
+            <div class="bottom-nav">
+                <div class="nav-item active" data-page="main" onclick="switchPage('main')">Купить</div>
+                <div class="nav-item" data-page="profile" onclick="switchPage('profile')">Профиль</div>
+                <div class="nav-item" data-page="reviews" onclick="switchPage('reviews')">Отзывы</div>
+                <div class="nav-item" data-page="work" onclick="switchPage('work')">Работать</div>
+                <div class="nav-item" data-page="shop" onclick="switchPage('shop')">Магазин</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция перенаправления в Telegram
+        function redirectToTG() {
+            window.open('https://t.me/raidentgkk', '_blank');
+        }
+
+        // Переключение между страницами (вкладками)
+        function switchPage(pageId) {
+            // Скрыть все страницы
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            // Показать нужную
+            let targetPage;
+            if (pageId === 'main') targetPage = document.getElementById('pageMain');
+            else if (pageId === 'profile') targetPage = document.getElementById('pageProfile');
+            else if (pageId === 'reviews') targetPage = document.getElementById('pageReviews');
+            else if (pageId === 'work') targetPage = document.getElementById('pageWork');
+            else if (pageId === 'shop') targetPage = document.getElementById('pageShop');
+
+            if (targetPage) targetPage.classList.add('active-page');
+
+            // Обновить активный класс в нижнем меню
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === pageId) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Если переключились на главную (main), сбрасываем на вкладку "Купить"
+            if (pageId === 'main') {
+                showBuyTab();
+            }
+        }
+
+        // Переключение по клику из профиля и т.п.
+        function switchPageByNav(pageId) {
+            switchPage(pageId);
+        }
+
+        // Переключение внутри main (Купить / Бесплатно)
+        function showBuyTab() {
+            document.getElementById('tabBuyBtn').classList.add('active');
+            document.getElementById('tabFreeBtn').classList.remove('active');
+            document.getElementById('blockBuy').style.display = 'block';
+            document.getElementById('blockFree').style.display = 'none';
+        }
+        function showFreeTab() {
+            document.getElementById('tabFreeBtn').classList.add('active');
+            document.getElementById('tabBuyBtn').classList.remove('active');
+            document.getElementById('blockFree').style.display = 'block';
+            document.getElementById('blockBuy').style.display = 'none';
+        }
+
+        // Магазин по кнопке сверху
+        document.getElementById('shopButton').addEventListener('click', function() {
+            switchPage('shop');
+        });
+
+        // Инициализация при загрузке
+        window.onload = function() {
+            switchPage('main'); // главная страница
+            showBuyTab(); // внутри главной показываем "Купить"
+        };
+    </script>
+</body>
+</html>
